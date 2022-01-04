@@ -14,6 +14,8 @@ class Parser{
 
     saved;
     saved_position;
+    
+    lines;
 
     constructor(target , divisor){
         this.target = target;
@@ -21,17 +23,23 @@ class Parser{
         this.reset();
       //  console.log(target.length);
     }
+    
+    getSaved(){
+        return this.saved.join("")
+    }
+    
     feed(char){
 
         if(this.position == 0 && char == ' '){
             return;
         }
 
+        /*
         if ( char == this.divisor){
             this.state = MAYBE;
             this.reset();
             return;
-        }
+        }*/
 
         if(this.state == ERROR){
             return;
@@ -50,6 +58,10 @@ class Parser{
         }
         if( this.state = FOUND){
             this.state = SAVING
+            if(char == '\n'){
+                char = ' ';
+                this.lines++;
+            }
             this.saved[this.saved_position] = char;
             this.saved_position++;
             return;
@@ -65,6 +77,7 @@ class Parser{
         this.state = MAYBE;
         this.saved = [];
         this.saved_position = 0;
+        this.lines = 0;
     }
 }
 
