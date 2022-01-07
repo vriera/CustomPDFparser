@@ -1,9 +1,9 @@
-const { count } = require('console');
+
+require('dotenv').config();
 const fs = require('fs')
-const { parse } = require('path')
 const pdfparse = require('pdf-parse');
-const { isGeneratorFunction } = require('util/types');
-const files = fs.readdirSync('./data_small');
+const dir = './data_small'
+const files = fs.readdirSync(dir);
 console.log('found files are:');
 console.log(files)
 const {Parser , MAYBE , FOUND , ERROR , SAVING} = require('./parser');
@@ -11,16 +11,20 @@ const campos = [ 10 , 21 ,22, 29 , 30 , 41 , 51 , 54 , 57 , 61 , 62 , 71 , 72 , 
 let target_found = 0
 //files.forEach( (filename) => console.log(filename));
 
+const { initMongo , insertArray , closeMongo   } = require('./mongo')
+
 app();
 async function app(){
+    await initMongo();
     await Promise.all(files.map( async (filename) => {
-        let file = fs.readFileSync(`./data_small/${filename}`);
+        let file = fs.readFileSync(`${dir}/${filename}`);
         data = await pdfparse(file)
         let text = data.text;
         //console.log(text , text.text_len);
         target_found += await  masterParser(text, text.length , filename);
     }));
     console.log(`Se encontraron ${target_found}  39/40`);
+    //await closeMongo();
 }
 
 function resetAll(parserMap){
@@ -110,7 +114,7 @@ async function masterParser(text , text_len , filename){
         
         if(p.get(10).state == FOUND){
             console.log('10 found');
-            if(totalPatentes > 0 ){
+            if(totalPatentes > 1 ){
                 patentes.push(patenteActual);
                 patenteActual = {};
             }
@@ -186,6 +190,7 @@ async function masterParser(text , text_len , filename){
     patentes.push(patenteActual);
     console.log(`Se encontraron ${totalPatentes} con ${targetLocal} local en ${filename}`);
     console.log(patentes);
+    await insertArray(patentes);
     return targetLocal;
 }
 
